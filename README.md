@@ -68,3 +68,34 @@ php artisan test
 ```
 
 Feature tests cover player session access and match history, the 12-player, two-doubles-court manager workflow, and the Organizer acceptance flow: five checked-in players queue a doubles match without a court, adding a court starts it, and one score updates its four players exactly once.
+
+## Vercel deployment (Container Runtime beta)
+
+The repository includes a FrankenPHP container, Caddy configuration, and Vercel routing config. Import the GitHub repository into a Vercel project with Container Runtime access enabled. The container is stateless, so configure an external MySQL database and object storage before serving real users.
+
+Set these Vercel environment variables for Production:
+
+| Variable | Value |
+| --- | --- |
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` |
+| `APP_KEY` | Generate with `php artisan key:generate --show`; add the output only in Vercel |
+| `APP_URL` | Your deployed HTTPS URL |
+| `DB_CONNECTION` | `mysql` |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Values from a managed MySQL provider (Aiven MySQL is one option) |
+| `SESSION_DRIVER` | `database` |
+| `CACHE_STORE` | `database` |
+| `QUEUE_CONNECTION` | `sync` |
+| `FILESYSTEM_DISK` | `s3` |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Cloudflare R2 S3 API credentials |
+| `AWS_DEFAULT_REGION` | `auto` |
+| `AWS_BUCKET` | Your R2 bucket name |
+| `AWS_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
+| `AWS_URL` | Public custom domain or public R2 bucket URL for profile photos |
+| `AWS_USE_PATH_STYLE_ENDPOINT` | `true` |
+| `FILESYSTEM_THROW` | `true` |
+| `LOG_CHANNEL` | `stderr` |
+
+Enable public reads for the R2 bucket through a custom domain or the R2 public development URL; keep the S3 API credentials private. Profile uploads use the configured default filesystem disk. Do not run `php artisan db:seed` in production: the demo seeder uses public sample credentials.
+
+After adding the production environment variables, run migrations once from a trusted checkout connected to the production database (`php artisan migrate --force`). Do not run migrations at container startup, and never commit `.env` or paste secrets into chat. Configure SMTP before enabling production email verification; until then Laravel's default `log` mailer does not deliver email, so production launch remains paused.

@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -25,11 +26,19 @@ class ProfileController extends Controller
             'avatar' => ['nullable', 'image', 'max:3072'],
         ]);
 
+        $disk = config('filesystems.default');
+        $oldAvatarPath = $user->avatar_path;
+
         if ($request->hasFile('avatar')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
+            $avatarPath = $request->file('avatar')->store('avatars', $disk);
+
+            if (! $avatarPath) {
+                throw ValidationException::withMessages([
+                    'avatar' => 'The profile photo could not be saved. Please try again.',
+                ]);
             }
-            $data['avatar_path'] = $request->file('avatar')->store('avatars', 'public');
+
+            $data['avatar_path'] = $avatarPath;
         }
 
         if ($data['email'] !== $user->email) {
@@ -37,6 +46,10 @@ class ProfileController extends Controller
         }
 
         $user->update(collect($data)->except('avatar')->all());
+
+        if ($oldAvatarPath && isset($data['avatar_path'])) {
+            Storage::disk($disk)->delete($oldAvatarPath);
+        }
 
         if ($data['email'] !== $originalEmail) {
             $user->sendEmailVerificationNotification();

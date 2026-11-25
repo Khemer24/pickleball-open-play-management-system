@@ -11,7 +11,7 @@ RUN mkdir -p public && npm run build
 
 FROM dunglas/frankenphp:1-php8.4-bookworm AS base
 
-RUN install-php-extensions pdo_mysql intl zip
+RUN install-php-extensions pdo_mysql zip
 
 WORKDIR /app
 

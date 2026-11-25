@@ -77,6 +77,7 @@ Set these Vercel environment variables for Production:
 
 | Variable | Value |
 | --- | --- |
+| `APP_NAME` | `RallyCourt` |
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` |
 | `APP_KEY` | Generate with `php artisan key:generate --show`; add the output only in Vercel |

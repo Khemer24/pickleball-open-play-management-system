@@ -35,6 +35,7 @@ COPY --chown=www-data:www-data Caddyfile /etc/frankenphp/Caddyfile
 RUN chown -R www-data:www-data /config/caddy /data/caddy
 
 ENV APP_ENV=production \
+    APP_NAME=RallyCourt \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
     PORT=8080
